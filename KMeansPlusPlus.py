@@ -24,31 +24,31 @@ def InitClusterCenters(points, k, distMeas='correlation'):
     clusterCenters[0] = copy.copy(points[randSeq])
 
     # choose cluster center by nearest points
-    distCenters = [0.0 for i in range(n)]
+    # 直接选择最大值 容易收到噪声的影响 因此应该选择较大值
+    # 如何选择较大值： 
+    # 把集合D中的每个元素D(x)想象为一根线L(x)，线的长度就是元素的值
+    # 将这些线依次按照L(1)、L(2)、……、L(n)的顺序连接起来
+    # 组成长线L。L(1)、L(2)、……、L(n)称为L的子线
+    # 根据概率的相关知识，如果我们在L上随机选择一个点
+    # 那么这个点所在的子线很有可能是比较长的子
+    # 而这个子线对应的数据点就可以作为种子点
+    # 当K值大于2时，每个样本会有多个距离，需要取最小的那个距离作为D(x)
+    distSum = np.inf
     for i in range(1, k):
-        distMatrix = dist.cdist(np.array(points), np.array(clusterCenters[:i]), distMeas)
-        maxIndex = np.where(distMatrix == np.max(distMatrix))[0][0]
-        clusterCenters[i] = copy.copy(points[maxIndex])
-
-        # 直接选择最大值 容易收到噪声的影响 因此应该选择较大值
-        # 如何选择较大值： 
-        # 把集合D中的每个元素D(x)想象为一根线L(x)，线的长度就是元素的值
-        # 将这些线依次按照L(1)、L(2)、……、L(n)的顺序连接起来
-        # 组成长线L。L(1)、L(2)、……、L(n)称为L的子线
-        # 根据概率的相关知识，如果我们在L上随机选择一个点
-        # 那么这个点所在的子线很有可能是比较长的子
-        # 而这个子线对应的数据点就可以作为种子点
-        
-
-        # sumDist *= random.random()
-        # for j, dist in enumerate(distCenters):
-        #     sumDist -= dist
-        #     if sumDist > 0 :
-        #         continue
-        #     clusterCenters[i] = copy(points[j])
-        #     break
-
-        # 距离最小值
+        distMatrix = dist.cdist(np.array(points), np.array(clusterCenters[:i]), distMeas)  
+        temp_list = [value[i-1] for value in list(distMatrix)]
+        temp = np.sum(temp_list)
+        if temp < distSum :
+            min_index = i
+            distSum = temp
+        dist_list = [value[min_index-1] for value in list(distMatrix)]
+        dist_random = distSum * random.random()
+        for j, dist_val in enumerate(dist_list):
+            dist_random -= dist_val
+            if dist_random > 0 :
+                continue
+            clusterCenters[i] = copy.copy(points[j])
+            break
         
     
     return clusterCenters
@@ -87,10 +87,9 @@ def KMeansPlusPlus(points, k, distMeas='correlation', times = 30):
 
 
 if __name__ == '__main__' :
-    data = [[1,10], [1,20], [2,9], [4,1], [5,2]]
-    k = 2
-    calcTimes = 30
-    centroids, clusterAssment = KMeansPlusPlus(data, k, times=calcTimes)
-    print(centroids)
+    data = [[1,10], [1,20], [2,9], [4,1], [5,2],[9,9], [4,4], [5,5]]
+    k = 3
+    calcTimes = 100
+    clusterAssment = KMeansPlusPlus(data, k, distMeas='euclidean', times=calcTimes)
     print(clusterAssment)
 

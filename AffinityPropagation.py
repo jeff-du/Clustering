@@ -14,9 +14,18 @@ def AffinityPropagation(data):
     affinityPropagation = cluster.AffinityPropagation(damping=.9,
                                                        preference=-200)
     affinityPropagation.fit(data)
-    if hasattr(algorithm, 'labels_'):
-        clusteringResult = affinityPropagation.labels_.astype(np.int)
-    else:
-        clusteringResult = affinityPropagation.predict(data)
+    clusteringResult = affinityPropagation.labels_.astype(np.int)
     
     return clusteringResult
+
+if __name__ == '__main__':
+    data = [[1,10], 
+            [1,20], 
+            [2,5], 
+            [4,2], 
+            [8,2]]
+    k = 2
+    calcTimes = 100
+    clusterAssment = AffinityPropagation(data)
+    print(clusterAssment)
+
